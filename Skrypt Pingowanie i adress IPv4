@@ -1,0 +1,16 @@
+Import-module activdirectory
+
+$computers = get-content -path c:\users
+Foreach ($computer in $computers)
+
+{
+If (test-connection $computer -count 1 -quiet)
+{ 
+$adres = test-connection $computer -count 1 | select IPV4Address
+Write-host "$computer yes $adres" -foregroundcolor cyan
+}else{
+
+Write-host "$computer no availeble" -foregroundclor darkred
+}
+
+}
