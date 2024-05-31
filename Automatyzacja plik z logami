@@ -1,0 +1,3 @@
+
+
+c:\windows\system32\window…Powershell.exe -file d:\path -executionpolicy bypass >> d:\out.txt
