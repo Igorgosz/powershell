@@ -1,0 +1,21 @@
+<#
+    .Synopsis
+        Use it to raise multiple AHD tickets based on CSV file
+    .DESCRIPTION
+        Use it to raise multiple AHD tickets based on CSV file.
+    .EXAMPLE
+        Send-AHDRequests -showDebug 
+    .EXAMPLE
+        Send-AHDRequests -showDebug -keepInput
+    .EXAMPLE
+        Send-AHDRequests -showDebug -keepInput -InputCSV file.csv
+    .INPUTS
+        showDebug - prints extra debug details
+        keepInput - doesn't remove data file after executing 
+        InputCSV - you can specify file other than default 
+    .OUTPUTS
+        Uses Outlook to send mails to AHD
+    .NOTES
+        Author: DanielBuczynski@gmail.com
+        Release: 2019.08.19 10:10
+#>
