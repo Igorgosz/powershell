@@ -1,0 +1,21 @@
+Class student {
+
+[string] $Name
+[string] $logon
+
+}
+
+$database = @()
+
+Get-adcomputer -filter {name -like "bpmlcjls1*" -and enabled -eq $true} -properties * | foreach-object {
+$entry = [student] :: new()
+$entry.name = $_.name
+$entry.logon = [datetime] ::FromFileTime((get-adcomputer $_ -properties * | select lastlogon).lastlogon)
+
+$database += $entry
+
+}
+
+$database
+
+[datetime](get-adcomputer bpm -properties * | select lastlogon).lastlogon
