@@ -1,0 +1,4 @@
+• Remove-AppxProvisionedPackage –PackageName <PackageName>
+• Remove-ProvisionedAppxPackage –PackageName <PackageName>
+
+Get-appxPackage Microsoft* | Remove-appxpackage
