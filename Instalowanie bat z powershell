@@ -1,0 +1,1 @@
+Invoke-WmiMethod -Class win32_proces -Name create -ArgumentList "cmd.exe /c c:\users\$env:UserName\desktop\***.exe"
