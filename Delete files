@@ -1,0 +1,54 @@
+Import-Module activedirectory
+
+
+[array]$EngagementList = @()
+
+
+Get-ADOrganizationalUnit -Filter "name -like '*'" -SearchBase "path OU" -SearchScope OneLevel | ForEach-Object {
+    $EngagementList += $_.name
+}
+
+    $EngagementNumber = Show-Menu -MenuTitle "Choose engagement:" -MenuOptions $EngagementList
+
+    $Engagement = "OU=Computers,OU=" + $EngagementList[$EngagementNumber] + ",path OU"
+
+    #exit 0
+
+    If ($true) {
+
+
+Get-ADComputer -Filter {Enable -eq "true"} -SearchBase $Engagement | ForEach-Object {
+
+$computer = $_.name
+
+it (Test-Connection $computer -Count 1 -Quiet)
+
+    { Invoke-Command -ComputerName $computer -ScriptBlock {
+
+    Get-ChildItem C:\Windows\System32\winevt\Logs\ | Where-Object Length -gt "1000000000" | ForEach-Object {
+
+         try {
+                Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue
+                Write-Host "Removing: $($_.FullName)"
+            }
+      
+      catch { 
+
+                Write-Host "Can't remove: $($_.FullName)"
+            
+            }
+} 
+}
+              "$computer is done"
+
+}
+        else 
+
+        {
+
+        "computer no available"
+
+        }
+
+}
+}
