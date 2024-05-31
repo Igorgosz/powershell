@@ -1,0 +1,43 @@
+diskpart
+Partycja VHD:
+list disk
+select disk 0
+list partition
+create partition primary
+list partition
+assign
+list partition
+select partition 1
+active
+format fs=ntfs
+
+create vdisk file=D:\VHDs\Windows7.vhd maximum=20000
+
+​select vdisk file="D:\VHDs\Windows7.vhd"
+attach vdisk
+
+exit
+
+bcdedit /v
+
+bcdedit /set {identyfikator} description "Windows 7 w pliku VHD"
+
+Bootowalny Pendrive:
+
+diskpart
+
+list disk
+
+select disk 1
+
+clean
+
+create partition primary size=1024
+
+active
+
+format fs=fat32 or format fs=fat32 quick
+
+assign
+
+exit
