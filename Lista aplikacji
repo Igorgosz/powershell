@@ -1,0 +1,7 @@
+get-wmiobject Win32_product
+
+Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*
+
+get-wmiobject -computername nazwa_lub_IP_zdalnego_komputera Win32_product | select Name,Vendor
+
+invoke-command -computername kwibus10 -scriptblock {Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*}
