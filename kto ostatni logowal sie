@@ -1,0 +1,57 @@
+Import-Module activedirectory
+
+$wynik = @()
+
+class ComputerRow {
+[string]$ComputerName
+[string]$IP
+[datetime]$LastAccessTime
+[string]$Status
+[string]$user
+[int]$count
+}
+
+get-adcomputer -filter {enable -eq "true"} -searchBase "OU=computers..." | Select-Object -First 5 | ForEach-Object {
+
+if (Test-Connection $computer -Count 1 -Quiet)  {
+
+$test  = Invoke-Command -ComputerName $_.name -ErrorAction SilentlyContinue -ScriptBlock {
+Get-ChildItem C:\Users\ | Select-Object lastaccesstime, name | Sort-Object -Descending lastaccesstime | Select-Object -First 1 Name, LastAccessTime }
+
+$workstation = New-Object ComputerRow
+
+$workstation.ComputerName = $_.name
+$workstation.IP = get-adcomputer $._name -properties * | Select-Object -ExpandProperty IPv4Address
+$workstation.LastAcessTime = $test.LastAccessTime
+$workstation.User = $test.Name
+$workstation.status = "found"
+
+    $wynik +=$workstation
+
+
+    Get-Variable | Where-Object name -eq "test" | ForEach-Object {Remove-Variable -Name test}
+
+} else {
+
+        $wynik += [PSCustomObject]@{
+        ComputerName = $_.name
+        IP = $null
+        LastAccessTime = $null
+        User = $null
+        status = "Not found"
+        
+        }
+
+}
+}
+
+
+$wynik | ft -AutoSize
+
+        $newWynik = $wynik |Select-Object Computername, IP, @{Name='lastAccessTime';Expression={get-date $._lasstAccessTime -Format 'yyyy-MM-dd dddd'}}, @{Name="Ad Name";E={(get-aduser $_.user -properties *).description}}
+
+        $newWynik | export-csv -Path d:\temp.csv
+
+        $trash = import-csv d:\temp.csv
+
+        $trash
