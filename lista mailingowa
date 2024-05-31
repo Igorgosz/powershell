@@ -1,0 +1,193 @@
+<#
+    .Synopsis
+        Tomek's request to send follow-up to supervisor about missing asset details
+    .DESCRIPTION
+        Tomek's request to send follow-up to supervisor about missing asset details
+    .EXAMPLE
+        .\script.ps1 -ExcelFile D:\temp\***.xlsx -AttachmentFile D:\temp\Mail.msg -Sender mail@email.com
+    .INPUTS
+        InstallModule - Will install module ImportExcel
+        ExcelFile - Path to proepr Excel file 
+        AttachmentFile - Path to attachment file 
+        Sender - email address to be used (has to be configured in current Outlook profile)
+    .OUTPUTS
+        Uses Outlook to send mails
+    .NOTES
+        Author: autor@gmail.com
+        Release: 2024.05.29 10:11
+#>
+
+[CmdletBinding()]
+ 
+Param(
+    [switch]$InstallModule = $false,
+    [string]$ExcelFile,
+    [string]$AttachmentFile,
+    [string]$Sender
+)
+
+Function Show-Menu () {
+  Param(
+    [Parameter(Mandatory = $True)][String]$MenuTitle,
+    [Parameter(Mandatory = $True)][array]$MenuOptions,
+    [Parameter(Mandatory = $false)][switch]$ShowIndex = $false
+  )
+  $MaxValue = $MenuOptions.count - 1
+  $Selection = 0
+  $EnterPressed = $False
+  Clear-Host
+  While ($EnterPressed -eq $False) {
+    Write-Host "$MenuTitle"
+    For ($i = 0; $i -le $MaxValue; $i++) {
+      if ($ShowIndex) { $index = $i } else { $index = $null }
+      If ($i -eq $Selection) { Write-Host -BackgroundColor Cyan -ForegroundColor Black "$($index) [ $($MenuOptions[$i]) ]" } Else { Write-Host "$($index)  $($MenuOptions[$i]) " }
+    }
+    $KeyInput = $host.ui.rawui.readkey("NoEcho,IncludeKeyDown").virtualkeycode
+    Switch ($KeyInput) {
+      13 {
+        $EnterPressed = $True
+        Return $Selection
+        Clear-Host
+        break
+      }
+      38 {
+        If ($Selection -eq 0) { $Selection = $MaxValue } Else { $Selection -= 1 }
+        Clear-Host
+        break
+      }
+      40 {
+        If ($Selection -eq $MaxValue) { $Selection = 0 } Else { $Selection += 1 }
+        Clear-Host
+        break
+      }
+      Default { Clear-Host }
+    }
+  }
+}
+ 
+function Invoke-SetProperty {
+    # Auxiliar function to set properties. The SendUsingAccount property wouldn't be set in a different way
+    param(
+        [__ComObject] $Object,
+        [String] $Property,
+        $Value 
+    )
+    [Void] $Object.GetType().InvokeMember($Property,"SetProperty",$NULL,$Object,$Value)
+}
+ 
+function Send-AMSReminder {
+    [CmdletBinding()]
+    Param(
+        [string]$supervisor,
+        [string]$employee,
+        [string]$sender,
+        [string]$attachment,
+        $ExcelData
+    )
+    write-host $supervisor $employee $sender $attachment
+    try {
+        $Mail = $Outlook.CreateItem(0)
+        Invoke-SetProperty -Object $Mail -Property "SendUsingAccount" -Value ($Outlook.Session.Accounts() |where-object {$_.displayname -eq $sender})
+        $Mail.To = $supervisor
+        $Mail.CC = $employee
+
+        $SupervisorFirstName = ($ExcelData |Where-Object {$_.email -eq $supervisor} |Select-Object -First 1 ).name.split(" ")[0]
+        $SupervisorLastName  = ($ExcelData |Where-Object {$_.email -eq $supervisor} |Select-Object -First 1 ).name.split(" ")[1]
+        $SupervisorFullName  = ($ExcelData |Where-Object {$_.email -eq $supervisor} |Select-Object -First 1 ).name
+ 
+        $EmpoloyeeFullName  = ($ExcelData |Where-Object {$_.email -eq $employee} |Select-Object -First 1 ).name
+        $EmpoloyeeLastName  = ($ExcelData |Where-Object {$_.email -eq $employee} |Select-Object -First 1 ).name.split(" ")[1]
+        $EmpoloyeeFirstName = ($ExcelData |Where-Object {$_.email -eq $employee} |Select-Object -First 1 ).name.split(" ")[0]
+ 
+ 
+        # Only part you have to provide
+ 
+ 
+#        $Mail.Subject = (get-date).ToString() + " test mail about $EmpoloyeeFullName"
+        $Mail.Subject = "test mail about $EmpoloyeeFullName"
+ 
+ 
+        $Mail.Body = "Dear " + $SupervisorFirstName + "
+Please ask " + $EmpoloyeeFullName + " to share update about assets as requested in attached mail"
+ 
+        # optionaly you can update $Mail.HTMLBody instead of $Mail.Body
+
+        # don't touch below
+ 
+        $Mail.Attachments.Add($attachment)| Out-Null #} else {write-host missing attachment}
+ 
+        # TUTAJ TRZEBA ZMIENIC
+        $mail.Display()
+ 
+        
+        #$Mail.Send()
+ 
+        
+    } catch {
+        write-host "Sending email failed!"
+        write-host $_
+    }
+}
+ 
+Add-Type -AssemblyName System.Windows.Forms
+$FileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{ InitialDirectory = [Environment]::GetFolderPath('Desktop') }
+ 
+ 
+# Clear-Host
+if ($InstalModule) {Install-Module ImportExcel}
+ 
+try {Import-Module ImportExcel}
+catch {write-host "Can't load module ImportExcel, please try running with parameter -InstallModule"; exit 1 }
+ 
+if (!$ExcelFile) { 
+    $FileBrowser.Title = "Excel file to be loaded."
+    $FileBrowser.Filter = "Excel files (*.xlsx)|*.xlsx"
+    $null = $FileBrowser.ShowDialog()
+    $ExcelFile = $FileBrowser.FileName 
+}
+try { if (!(Test-Path ($ExcelFile)) ) { throw "File $($ExcelFile) not found" } }
+catch { write-host $_ ; exit 1 }
+ 
+try {$ExcelData = Import-Excel -Path $ExcelFile -WorksheetName Sheet1}
+catch {write-host "Not able to load excel file from path: $ExcelFile"; exit 1}
+ 
+if (!$AttachmentFile) { 
+    $FileBrowser.Title = "File to be attached."
+    $FileBrowser.Filter = "All files (*.*)|*.*"
+    $null = $FileBrowser.ShowDialog()
+    $AttachmentFile = $FileBrowser.FileName
+}
+try { if (!(Test-Path ($AttachmentFile)) ) { throw "File $($AttachmentFile) not found" } }
+catch { write-host $_ ; exit 1 }
+ 
+Add-Type -assembly "Microsoft.Office.Interop.Outlook"
+Add-Type -assembly "System.Runtime.Interopservices"
+$Outlook = [Runtime.Interopservices.Marshal]::GetActiveObject('Outlook.Application')
+ 
+if (!$Sender) {
+    $Senders = @()
+    $Outlook.Session.Accounts() |ForEach-Object {$Senders += $_.displayname.ToString()}
+    $SenderIndex = Show-Menu -MenuTitle "Select Mailbox" -MenuOptions $Senders
+    $Sender = $Senders[$SenderIndex]
+}
+ 
+if (!($Outlook.Session.Accounts() |Where-Object {$_.displayname -eq $Sender} )) {
+    write-host "Mailbox $Sender not connected in current Outlook profile"; exit 1
+}
+ 
+ 
+#TUTAJ ZMIENIAMY
+#exit 1
+ 
+ 
+$ExcelData |
+        where-object {$_.REPLIED -ne "OK"} |
+        where-object {$_.REPLIED -ne "L4"} |
+        where-object {$_.SUP -eq "tomasz_rosniak@infosys.com"} |
+        ForEach-Object {
+ 
+ 
+        #write-host $_.SUP $_.email $sender $attachmentFile
+    Send-AMSReminder -supervisor $_.SUP -employee $_.email -sender $sender -attachment $attachmentFile -ExcelData $ExcelData
+}
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($Outlook) | Out-Null
