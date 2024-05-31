@@ -1,0 +1,8 @@
+Invoke-webrequest 'https://***.msi' -outfile $agent -verbose
+$awagent ="c:\***.msi"
+
+$arguments = "/i $awagent /qn enroll=y server=https://*** LGNAME=*** USERNAME=*** PASSWORD=***"
+
+Start-proces msiexe.exe -argumentlist $arguments -wait
+
+Timeout /t 120
