@@ -1,0 +1,1 @@
+Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\WIMMount\Mounted Images" | Get-ItemProperty | select -ExpandProperty "mount path" | ForEach-Object {Dismount-WindowsImage -Path $_ -Discard}
