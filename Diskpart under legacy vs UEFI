@@ -1,0 +1,35 @@
+MBR
+
+Select Volume 0 
+Assign Letter=Z
+
+select disk 0
+clean
+
+create partition primary size=200600 NOERR
+select partition 1
+active
+assign letter=C noerr
+format FS=ntfs LABEL="SYSTEM" QUICK NOERR
+
+create partition extended noerr
+create partition logical noerr
+assign letter=D noerr
+format FS=ntfs LABEL="DATA" QUICK NOERR
+
+
+
+UEFI
+select disk 0
+clean
+convert gpt
+
+create partition efi size=100
+format quick fs=fat32 label="System"
+assign letter="S"
+
+create partition msr size=128
+
+create partition primary
+format QUICK FS=ntfs LABEL="Windows"
+assign letter="C"
