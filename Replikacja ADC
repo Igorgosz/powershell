@@ -1,0 +1,6 @@
+Sprawdzenie statusu 
+
+Repadmin /replsummary
+
+
+tnc adress ip servera -port 53
