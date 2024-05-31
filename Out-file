@@ -1,0 +1,28 @@
+Import-module activedirectory
+
+$computers = get-content -path 'C:\users…
+
+$wynik = @()
+
+Foreach ($computer in $computers) {
+
+If (test-connection $computer -count 1 -quiet )
+           
+           {
+                  $adres = get-adcomputer $computer -properties * | select-object -expandProperty Ipv4Address
+                   $wynik += "$computer yes $adres"
+
+             }
+
+     else
+
+      {
+            $wynik += "$computer na available"
+
+        }
+
+}
+
+
+$wynik
+$wynik | out-file  -filepath "c:\user…  nazwa.csv"
