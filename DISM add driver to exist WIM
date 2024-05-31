@@ -1,0 +1,34 @@
+Thursday, July 2, 2020
+5:30 PM
+
+DISM /Mount-Wim /WimFile:D:\corpobootwim\uefi client osd - mdt2018.wim /index:1 /MountDir:D:\mountboot\mount
+
+DISM /Image:D:\mountboot\mount /get-drivers
+
+DISM /image:D:\mountboot\mount /Add-Driver /driver:D:\corpobootwim\NetworkDRV /recurse
+
+DISM /Image:D:\mountboot\mount /get-drivers
+
+DISM /Unmount-Wim /MountDir:D:\mountboot\mount /Commit
+
+
+=================================================================
+
+
+Dism /Get-WimInfo /WimFile:D:\corpobootwim\corptestx64.wim
+
+Dism /Mount-Image /ImageFile:D:\corpobootwim\corptestx64.wim /Index:1 /MountDir:D:\mountboot\mount
+
+                                                    Don't Use!!!!!dism /Image:D:\mountboot\mount /Add-Driver /Driver:d:\corpobootwim\networkdrv\b57nd60a.inf /Driver:d:\corpobootwim\networkdrv\b57nd60a.pnf /Driver:d:\corpobootwim\networkdrv\b57nd60a.sys Don't Use!!!!!
+ 
+dism /Image:D:\mountboot\mount /Add-Driver /Driver:D:\corpobootwim\networkdrv\ /Recurse
+
+dism /Unmount-Image /MountDir:D:\mountboot\mount /Commit
+
+
+
+###Paste this 2 commandlets to powershell to get latest DISM module loaded into powershell###
+
+$env:path = "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\DISM"
+
+import-module "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\DISM"
